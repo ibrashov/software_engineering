@@ -7,15 +7,18 @@ import {
 
 const NOW = 540;
 
+function cloneBookings(bookings: Booking[]): Booking[] {
+  return bookings.map((b) => ({ ...b }));
+}
+
 function makeRoom(overrides: Partial<RoomState> = {}): RoomState {
   const defaultBookings: Booking[] = [{ start: 600, end: 660 }];
+  const sourceBookings = overrides.bookings ?? defaultBookings;
   return {
     name: "Library Study Room B-12",
     blocked: false,
-    bookings: overrides.bookings
-      ? overrides.bookings.map((b) => ({ ...b }))
-      : defaultBookings.map((b) => ({ ...b })),
     ...overrides,
+    bookings: cloneBookings(sourceBookings),
   };
 }
 
@@ -37,9 +40,11 @@ describe("checkAvailability", () => {
     const before = snapshotBookings(room.bookings);
     const result = checkAvailability(room, NOW, 540, 570);
     expect(result.available).toBe(false);
+    expect(result).not.toHaveProperty("reason", undefined);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe(
+        "Booking must be in the future — current time is 09:00."
+      );
     }
     expect(room.bookings).toEqual(before);
   });
@@ -50,8 +55,7 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 720, 720);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe("Start time must be before end time.");
     }
     expect(room.bookings).toEqual(before);
   });
@@ -62,8 +66,7 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 750, 720);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe("Start time must be before end time.");
     }
     expect(room.bookings).toEqual(before);
   });
@@ -74,8 +77,9 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 1380, 1441);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe(
+        "Times must stay within the 00:00–24:00 range (0–1440 minutes)."
+      );
     }
     expect(room.bookings).toEqual(before);
   });
@@ -94,8 +98,7 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 720, 841);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe("Booking cannot exceed 120 minutes.");
     }
     expect(room.bookings).toEqual(before);
   });
@@ -114,8 +117,9 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 630, 690);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe(
+        "Requested time overlaps an existing booking (10:00–11:00). Touching endpoints are allowed."
+      );
     }
     expect(room.bookings).toEqual(before);
   });
@@ -126,8 +130,9 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 570, 690);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe(
+        "Requested time overlaps an existing booking (10:00–11:00). Touching endpoints are allowed."
+      );
     }
     expect(room.bookings).toEqual(before);
   });
@@ -138,8 +143,9 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 615, 645);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe(
+        "Requested time overlaps an existing booking (10:00–11:00). Touching endpoints are allowed."
+      );
     }
     expect(room.bookings).toEqual(before);
   });
@@ -150,8 +156,9 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 600, 660);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe(
+        "Requested time overlaps an existing booking (10:00–11:00). Touching endpoints are allowed."
+      );
     }
     expect(room.bookings).toEqual(before);
   });
@@ -162,8 +169,7 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 660, 720);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe("Room is blocked.");
     }
     expect(room.bookings).toEqual(before);
   });
@@ -211,9 +217,31 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 720, 780);
     expect(result.available).toBe(false);
     if (!result.available) {
-      expect(typeof result.reason).toBe("string");
-      expect(result.reason.length).toBeGreaterThan(0);
+      expect(result.reason).toBe(
+        "Requested time overlaps an existing booking (12:30–13:30). Touching endpoints are allowed."
+      );
     }
+    expect(room.bookings).toEqual(before);
+  });
+
+  it("T18: -30 to 30 => not available (negative start, out of day range)", () => {
+    const room = makeRoom();
+    const before = snapshotBookings(room.bookings);
+    const result = checkAvailability(room, NOW, -30, 30);
+    expect(result.available).toBe(false);
+    if (!result.available) {
+      expect(result.reason).toBe(
+        "Times must stay within the 00:00–24:00 range (0–1440 minutes)."
+      );
+    }
+    expect(room.bookings).toEqual(before);
+  });
+
+  it("T19: 541-600 => available (start one minute after current time)", () => {
+    const room = makeRoom();
+    const before = snapshotBookings(room.bookings);
+    const result = checkAvailability(room, NOW, 541, 600);
+    expect(result.available).toBe(true);
     expect(room.bookings).toEqual(before);
   });
 });
