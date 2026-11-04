@@ -13,6 +13,8 @@ export type AvailabilityResult =
   | { available: true }
   | { available: false; reason: string };
 
+export const MAX_BOOKING_MINUTES = 120;
+
 export function minutesToLabel(min: number): string {
   const h = Math.floor(min / 60);
   const m = min % 60;
@@ -51,10 +53,10 @@ export function checkAvailability(
     };
   }
 
-  if (end - start > 120) {
+  if (end - start > MAX_BOOKING_MINUTES) {
     return {
       available: false,
-      reason: "Booking cannot exceed 120 minutes.",
+      reason: `Booking cannot exceed ${MAX_BOOKING_MINUTES} minutes.`,
     };
   }
 

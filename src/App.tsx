@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import {
   type RoomState,
+  MAX_BOOKING_MINUTES,
   checkAvailability,
   minutesToLabel,
   labelToMinutes,
@@ -47,7 +48,7 @@ function App() {
   };
 
   const duration = Math.max(0, endMin - startMin);
-  const durationWarn = duration > 120;
+  const durationWarn = duration > MAX_BOOKING_MINUTES;
   const orderWarn = startMin >= endMin;
 
   return (
@@ -194,7 +195,7 @@ function App() {
               {durationWarn && (
                 <span className="text-amber-600">
                   {" "}
-                  — exceeds the 120-minute limit.
+                  — exceeds the {MAX_BOOKING_MINUTES}-minute limit.
                 </span>
               )}
             </span>

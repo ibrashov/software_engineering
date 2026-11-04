@@ -26,6 +26,14 @@ function snapshotBookings(bookings: Booking[]): Booking[] {
   return bookings.map((b) => ({ ...b }));
 }
 
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === "object") {
+    for (const child of Object.values(value)) deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
+
 describe("checkAvailability", () => {
   it("T01: 660-720 => available", () => {
     const room = makeRoom();
@@ -243,5 +251,30 @@ describe("checkAvailability", () => {
     const result = checkAvailability(room, NOW, 541, 600);
     expect(result.available).toBe(true);
     expect(room.bookings).toEqual(before);
+  });
+
+  it("T20: 420-480 => not available (start already in the past)", () => {
+    const room = makeRoom();
+    const before = snapshotBookings(room.bookings);
+    const result = checkAvailability(room, NOW, 420, 480);
+    expect(result.available).toBe(false);
+    if (!result.available) {
+      expect(result.reason).toBe(
+        "Booking must be in the future — current time is 09:00."
+      );
+    }
+    expect(room.bookings).toEqual(before);
+  });
+
+  it("T21: deep-frozen fixture => checks run without mutation attempts", () => {
+    const bookings = deepFreeze(cloneBookings([{ start: 600, end: 660 }]));
+    const room = deepFreeze({ name: "Library Study Room B-12", blocked: false, bookings });
+    expect(checkAvailability(room, NOW, 660, 720)).toEqual({ available: true });
+    expect(checkAvailability(room, NOW, 630, 690)).toEqual({
+      available: false,
+      reason:
+        "Requested time overlaps an existing booking (10:00–11:00). Touching endpoints are allowed.",
+    });
+    expect(room.bookings).toEqual([{ start: 600, end: 660 }]);
   });
 });
