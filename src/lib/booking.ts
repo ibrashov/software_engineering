@@ -32,6 +32,17 @@ export function checkAvailability(
   start: number,
   end: number
 ): AvailabilityResult {
+  if (
+    !Number.isFinite(start) ||
+    !Number.isFinite(end) ||
+    !Number.isFinite(currentTime)
+  ) {
+    return {
+      available: false,
+      reason: "Start, end, and current times must be valid finite numbers.",
+    };
+  }
+
   if (start < 0 || end > 1440) {
     return {
       available: false,

@@ -1,0 +1,190 @@
+
+> vite-react-typescript-starter@0.0.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /home/project
+
+ ❯ src/lib/booking.test.ts (30 tests | 9 failed) 19ms
+   × checkAvailability > T22: NaN start => not available (nonfinite input rejected, fixtures unchanged) 5ms
+     → expected true to be false // Object.is equality
+   × checkAvailability > T23: Infinity start => not available (nonfinite input rejected, fixtures unchanged) 2ms
+     → expected 'Start time must be before end time.' to be 'Start, end, and current times must be…' // Object.is equality
+   × checkAvailability > T24: -Infinity start => not available (nonfinite input rejected, fixtures unchanged) 1ms
+     → expected 'Times must stay within the 00:00–24:0…' to be 'Start, end, and current times must be…' // Object.is equality
+   × checkAvailability > T25: NaN end => not available (nonfinite input rejected, fixtures unchanged) 1ms
+     → expected true to be false // Object.is equality
+   × checkAvailability > T26: Infinity end => not available (nonfinite input rejected, fixtures unchanged) 2ms
+     → expected 'Times must stay within the 00:00–24:0…' to be 'Start, end, and current times must be…' // Object.is equality
+   × checkAvailability > T27: -Infinity end => not available (nonfinite input rejected, fixtures unchanged) 1ms
+     → expected 'Start time must be before end time.' to be 'Start, end, and current times must be…' // Object.is equality
+   × checkAvailability > T28: NaN currentTime => not available (nonfinite input rejected, fixtures unchanged) 0ms
+     → expected true to be false // Object.is equality
+   × checkAvailability > T29: Infinity currentTime => not available (nonfinite input rejected, fixtures unchanged) 1ms
+     → expected 'Booking must be in the future — curre…' to be 'Start, end, and current times must be…' // Object.is equality
+   × checkAvailability > T30: -Infinity currentTime => not available (nonfinite input rejected, fixtures unchanged) 0ms
+     → expected true to be false // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T22: NaN start => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/lib/booking.test.ts:285:30
+    283|     const before = snapshotBookings(room.bookings);
+    284|     const result = checkAvailability(room, NOW, NaN, 600);
+    285|     expect(result.available).toBe(false);
+       |                              ^
+    286|     if (!result.available) {
+    287|       expect(result.reason).toBe("Start, end, and current times must b…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T23: Infinity start => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected 'Start time must be before end time.' to be 'Start, end, and current times must be…' // Object.is equality
+
+Expected: "Start, end, and current times must be valid finite numbers."
+Received: "Start time must be before end time."
+
+ ❯ src/lib/booking.test.ts:298:29
+    296|     expect(result.available).toBe(false);
+    297|     if (!result.available) {
+    298|       expect(result.reason).toBe("Start, end, and current times must b…
+       |                             ^
+    299|     }
+    300|     expect(room.bookings).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T24: -Infinity start => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected 'Times must stay within the 00:00–24:0…' to be 'Start, end, and current times must be…' // Object.is equality
+
+Expected: "Start, end, and current times must be valid finite numbers."
+Received: "Times must stay within the 00:00–24:00 range (0–1440 minutes)."
+
+ ❯ src/lib/booking.test.ts:309:29
+    307|     expect(result.available).toBe(false);
+    308|     if (!result.available) {
+    309|       expect(result.reason).toBe("Start, end, and current times must b…
+       |                             ^
+    310|     }
+    311|     expect(room.bookings).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T25: NaN end => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/lib/booking.test.ts:318:30
+    316|     const before = snapshotBookings(room.bookings);
+    317|     const result = checkAvailability(room, NOW, 600, NaN);
+    318|     expect(result.available).toBe(false);
+       |                              ^
+    319|     if (!result.available) {
+    320|       expect(result.reason).toBe("Start, end, and current times must b…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T26: Infinity end => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected 'Times must stay within the 00:00–24:0…' to be 'Start, end, and current times must be…' // Object.is equality
+
+Expected: "Start, end, and current times must be valid finite numbers."
+Received: "Times must stay within the 00:00–24:00 range (0–1440 minutes)."
+
+ ❯ src/lib/booking.test.ts:331:29
+    329|     expect(result.available).toBe(false);
+    330|     if (!result.available) {
+    331|       expect(result.reason).toBe("Start, end, and current times must b…
+       |                             ^
+    332|     }
+    333|     expect(room.bookings).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T27: -Infinity end => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected 'Start time must be before end time.' to be 'Start, end, and current times must be…' // Object.is equality
+
+Expected: "Start, end, and current times must be valid finite numbers."
+Received: "Start time must be before end time."
+
+ ❯ src/lib/booking.test.ts:342:29
+    340|     expect(result.available).toBe(false);
+    341|     if (!result.available) {
+    342|       expect(result.reason).toBe("Start, end, and current times must b…
+       |                             ^
+    343|     }
+    344|     expect(room.bookings).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T28: NaN currentTime => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/lib/booking.test.ts:351:30
+    349|     const before = snapshotBookings(room.bookings);
+    350|     const result = checkAvailability(room, NaN, 660, 720);
+    351|     expect(result.available).toBe(false);
+       |                              ^
+    352|     if (!result.available) {
+    353|       expect(result.reason).toBe("Start, end, and current times must b…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T29: Infinity currentTime => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected 'Booking must be in the future — curre…' to be 'Start, end, and current times must be…' // Object.is equality
+
+Expected: "Start, end, and current times must be valid finite numbers."
+Received: "Booking must be in the future — current time is Infinity:NaN."
+
+ ❯ src/lib/booking.test.ts:364:29
+    362|     expect(result.available).toBe(false);
+    363|     if (!result.available) {
+    364|       expect(result.reason).toBe("Start, end, and current times must b…
+       |                             ^
+    365|     }
+    366|     expect(room.bookings).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  src/lib/booking.test.ts > checkAvailability > T30: -Infinity currentTime => not available (nonfinite input rejected, fixtures unchanged)
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/lib/booking.test.ts:373:30
+    371|     const before = snapshotBookings(room.bookings);
+    372|     const result = checkAvailability(room, -Infinity, 660, 720);
+    373|     expect(result.available).toBe(false);
+       |                              ^
+    374|     if (!result.available) {
+    375|       expect(result.reason).toBe("Start, end, and current times must b…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 21 passed (30)
+   Start at  05:54:12
+   Duration  279ms (transform 42ms, setup 0ms, collect 40ms, tests 19ms, environment 0ms, prepare 114ms)
+

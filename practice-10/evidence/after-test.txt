@@ -1,0 +1,14 @@
+
+> vite-react-typescript-starter@0.0.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /home/project
+
+ ✓ src/lib/booking.test.ts (30 tests) 8ms
+
+ Test Files  1 passed (1)
+      Tests  30 passed (30)
+   Start at  05:54:28
+   Duration  266ms (transform 46ms, setup 0ms, collect 35ms, tests 8ms, environment 0ms, prepare 101ms)
+

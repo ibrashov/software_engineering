@@ -1,0 +1,106 @@
+--- original/booking.test.ts	2026-11-11 05:51:37.264939748 +0000
++++ ../../src/lib/booking.test.ts	2026-11-11 05:52:33.309188246 +0000
+@@ -277,4 +277,103 @@
+     });
+     expect(room.bookings).toEqual([{ start: 600, end: 660 }]);
+   });
++
++  it("T22: NaN start => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, NOW, NaN, 600);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T23: Infinity start => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, NOW, Infinity, 600);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T24: -Infinity start => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, NOW, -Infinity, 600);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T25: NaN end => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, NOW, 600, NaN);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T26: Infinity end => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, NOW, 600, Infinity);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T27: -Infinity end => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, NOW, 600, -Infinity);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T28: NaN currentTime => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, NaN, 660, 720);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T29: Infinity currentTime => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, Infinity, 660, 720);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
++
++  it("T30: -Infinity currentTime => not available (nonfinite input rejected, fixtures unchanged)", () => {
++    const room = makeRoom();
++    const before = snapshotBookings(room.bookings);
++    const result = checkAvailability(room, -Infinity, 660, 720);
++    expect(result.available).toBe(false);
++    if (!result.available) {
++      expect(result.reason).toBe("Start, end, and current times must be valid finite numbers.");
++    }
++    expect(room.bookings).toEqual(before);
++  });
+ });

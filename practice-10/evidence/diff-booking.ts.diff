@@ -1,0 +1,20 @@
+--- original/booking.ts	2026-11-11 05:51:37.263939743 +0000
++++ ../../src/lib/booking.ts	2026-11-11 05:54:19.017659325 +0000
+@@ -32,6 +32,17 @@
+   start: number,
+   end: number
+ ): AvailabilityResult {
++  if (
++    !Number.isFinite(start) ||
++    !Number.isFinite(end) ||
++    !Number.isFinite(currentTime)
++  ) {
++    return {
++      available: false,
++      reason: "Start, end, and current times must be valid finite numbers.",
++    };
++  }
++
+   if (start < 0 || end > 1440) {
+     return {
+       available: false,
