@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import {
   CheckCircle2,
   XCircle,
@@ -49,22 +49,33 @@ function App() {
     Awaited<ReturnType<typeof fetchMockExplanation>> | null
   >(null);
   const [explaining, setExplaining] = useState(false);
+  const activeRequestIdRef = useRef(0);
 
   const timeOptions = useMemo(() => makeTimeOptions(15), []);
   const startMin = labelToMinutes(startTime);
   const endMin = labelToMinutes(endTime);
 
   const handleCheck = () => {
+    activeRequestIdRef.current += 1;
     setResult(checkAvailability(room, CURRENT_TIME, startMin, endMin));
     setExplanation(null);
   };
 
   const handleExplain = async (facts: MockAvailabilityFacts) => {
+    const currentReqId = ++activeRequestIdRef.current;
     setExplaining(true);
     setExplanation(null);
-    const outcome = await fetchMockExplanation(facts);
-    setExplanation(outcome);
-    setExplaining(false);
+    try {
+      const outcome = await fetchMockExplanation(facts);
+      // Guard against race conditions and stale responses (FINDING-CORR-02)
+      if (currentReqId === activeRequestIdRef.current) {
+        setExplanation(outcome);
+      }
+    } finally {
+      if (currentReqId === activeRequestIdRef.current) {
+        setExplaining(false);
+      }
+    }
   };
 
   const duration = Math.max(0, endMin - startMin);
@@ -106,6 +117,7 @@ function App() {
             <button
               type="button"
               onClick={() => {
+                activeRequestIdRef.current += 1;
                 setRoom((r) => ({ ...r, blocked: !r.blocked }));
                 setResult(null);
                 setExplanation(null);
@@ -160,6 +172,7 @@ function App() {
               <select
                 value={startTime}
                 onChange={(e) => {
+                  activeRequestIdRef.current += 1;
                   setStartTime(e.target.value);
                   setResult(null);
                   setExplanation(null);
@@ -181,6 +194,7 @@ function App() {
               <select
                 value={endTime}
                 onChange={(e) => {
+                  activeRequestIdRef.current += 1;
                   setEndTime(e.target.value);
                   setResult(null);
                   setExplanation(null);
@@ -321,10 +335,13 @@ function App() {
                       </span>
                     </p>
                   )}
-                  <p className="mt-2 text-[11px] text-slate-400">
-                    Generated locally from the checker result. Not a real AI
-                    model — see the Mock AI label above.
-                  </p>
+                  {explanation.ok && (
+                    <p className="mt-2 text-[11px] text-slate-400">
+                      {explanation.source === "deterministic-fallback"
+                        ? "Generated via deterministic fallback logic. Not a real AI model — see Mock AI label above."
+                        : "Generated locally from the checker result. Not a real AI model — see Mock AI label above."}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

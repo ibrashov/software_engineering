@@ -1,0 +1,4 @@
+Act as a software engineer. Extend the existing Smart Campus Room Availability Checker with an optional Explain availability feature. Preserve all existing booking rules and tests. The deterministic checker must remain authoritative.
+First, implement a mock LLM adapter that generates short explanations from structured availability data. Validate inputs and outputs, handle failures gracefully, and describe each changed file.
+Use a server-side adapter and never expose API secrets in the browser. Do not add login, a database, real personal data, or unnecessary dependencies.
+Display the confirmed availability result separately from the generated explanation. Clearly label the explanation as Mock AI. Preserve the existing application design.

@@ -2,7 +2,7 @@ import { explainMock } from "../_shared/explainMock.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
@@ -15,18 +15,39 @@ interface ExplainRequest {
   durationMinutes: number;
 }
 
-function isExplainRequest(value: unknown): value is ExplainRequest {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.available === "boolean" &&
-    (v.reason === null || typeof v.reason === "string") &&
-    typeof v.roomName === "string" &&
-    typeof v.startLabel === "string" &&
-    typeof v.endLabel === "string" &&
-    typeof v.durationMinutes === "number" &&
-    Number.isFinite(v.durationMinutes)
-  );
+const timeLabel = /^(?:[01]\d|2[0-3]):[0-5]\d$|^24:00$/;
+
+function minutes(label: string): number {
+  const [hours, minutes] = label.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function normalizeRequest(body: unknown): ExplainRequest | null {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
+
+  const raw = body as Record<string, unknown>;
+  const available = raw.available ?? raw.isAvailable;
+  const room = raw.roomName ?? raw.roomLabel;
+  const startLabel = raw.startLabel ?? raw.startTime;
+  const endLabel = raw.endLabel ?? raw.endTime;
+  const reason = ("reason" in raw ? raw.reason : raw.reasonMessage) ?? null;
+  if (
+    typeof available !== "boolean" ||
+    typeof room !== "string" || room.length > 100 ||
+    typeof startLabel !== "string" || !timeLabel.test(startLabel) ||
+    typeof endLabel !== "string" || !timeLabel.test(endLabel) ||
+    (reason !== null && (typeof reason !== "string" || reason.length > 300))
+  ) return null;
+
+  const roomName = room.trim().replace(/[\r\n\t]+/g, " ");
+  const durationMinutes = Math.max(0, minutes(endLabel) - minutes(startLabel));
+  if (
+    !roomName ||
+    ("durationMinutes" in raw && raw.durationMinutes !== durationMinutes) ||
+    (available && (reason !== null || durationMinutes === 0 || durationMinutes > 120))
+  ) return null;
+
+  return { available, reason, roomName, startLabel, endLabel, durationMinutes };
 }
 
 Deno.serve(async (req: Request) => {
@@ -52,14 +73,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (!isExplainRequest(body)) {
+    const reqFacts = normalizeRequest(body);
+    if (!reqFacts) {
       return new Response(
-        JSON.stringify({ error: "Invalid request body: expected available, reason, roomName, startLabel, endLabel, durationMinutes." }),
+        JSON.stringify({ error: "Invalid request body: expected availability facts." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const explanation = explainMock(body);
+    const explanation = explainMock(reqFacts);
     return new Response(
       JSON.stringify({ explanation, source: "mock-ai" as const }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
