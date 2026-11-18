@@ -6,6 +6,9 @@ import {
   DoorClosed,
   CalendarRange,
   Info,
+  Sparkles,
+  Bot,
+  AlertTriangle,
 } from "lucide-react";
 import {
   type RoomState,
@@ -14,6 +17,10 @@ import {
   minutesToLabel,
   labelToMinutes,
 } from "@/lib/booking";
+import {
+  fetchMockExplanation,
+  type MockAvailabilityFacts,
+} from "@/lib/mockExplanation";
 
 const DEFAULT_ROOM: RoomState = {
   name: "Library Study Room B-12",
@@ -38,6 +45,10 @@ function App() {
   const [result, setResult] = useState<
     ReturnType<typeof checkAvailability> | null
   >(null);
+  const [explanation, setExplanation] = useState<
+    Awaited<ReturnType<typeof fetchMockExplanation>> | null
+  >(null);
+  const [explaining, setExplaining] = useState(false);
 
   const timeOptions = useMemo(() => makeTimeOptions(15), []);
   const startMin = labelToMinutes(startTime);
@@ -45,6 +56,15 @@ function App() {
 
   const handleCheck = () => {
     setResult(checkAvailability(room, CURRENT_TIME, startMin, endMin));
+    setExplanation(null);
+  };
+
+  const handleExplain = async (facts: MockAvailabilityFacts) => {
+    setExplaining(true);
+    setExplanation(null);
+    const outcome = await fetchMockExplanation(facts);
+    setExplanation(outcome);
+    setExplaining(false);
   };
 
   const duration = Math.max(0, endMin - startMin);
@@ -88,6 +108,7 @@ function App() {
               onClick={() => {
                 setRoom((r) => ({ ...r, blocked: !r.blocked }));
                 setResult(null);
+                setExplanation(null);
               }}
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition ${
                 room.blocked
@@ -141,6 +162,7 @@ function App() {
                 onChange={(e) => {
                   setStartTime(e.target.value);
                   setResult(null);
+                  setExplanation(null);
                 }}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               >
@@ -161,6 +183,7 @@ function App() {
                 onChange={(e) => {
                   setEndTime(e.target.value);
                   setResult(null);
+                  setExplanation(null);
                 }}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               >
@@ -211,7 +234,7 @@ function App() {
 
         {/* Result */}
         {result && (
-          <section className="mt-5">
+          <section className="mt-5 space-y-4">
             <div
               className={`flex items-start gap-3 rounded-2xl border p-5 shadow-sm transition ${
                 result.available
@@ -249,6 +272,61 @@ function App() {
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* Mock AI explanation */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-slate-500" />
+                  <h3 className="text-sm font-semibold text-slate-800">
+                    Explain availability
+                  </h3>
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
+                    Mock AI
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={explaining}
+                  onClick={() => {
+                    handleExplain({
+                      available: result.available,
+                      reason: result.available ? null : result.reason,
+                      roomName: room.name,
+                      startLabel: minutesToLabel(startMin),
+                      endLabel: minutesToLabel(endMin),
+                      durationMinutes: duration,
+                    });
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {explaining ? "Explaining…" : "Explain this result"}
+                </button>
+              </div>
+
+              {explanation && (
+                <div className="mt-3 border-t border-slate-100 pt-3">
+                  {explanation.ok ? (
+                    <p className="text-sm leading-relaxed text-slate-700">
+                      {explanation.explanation}
+                    </p>
+                  ) : (
+                    <p className="flex items-start gap-2 text-sm text-amber-700">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>
+                        Explanation is not available right now.{" "}
+                        {explanation.error}
+                      </span>
+                    </p>
+                  )}
+                  <p className="mt-2 text-[11px] text-slate-400">
+                    Generated locally from the checker result. Not a real AI
+                    model — see the Mock AI label above.
+                  </p>
+                </div>
+              )}
             </div>
           </section>
         )}

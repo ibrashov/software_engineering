@@ -11,6 +11,11 @@ Out of scope: backend, login, saving bookings, and new features. The page does n
 - `src/lib/booking.ts` - pure booking rule (`checkAvailability`) and time helpers. Owns `MAX_BOOKING_MINUTES` (120).
 - `src/App.tsx` - the page. Calls the rule, shows warnings and results. Holds no booking logic beyond display.
 - `src/lib/booking.test.ts` - unit tests for the rule. Cases T01-T19 must stay.
+- `src/lib/mockExplain.ts` - mock explanation generator. Worded from the checker's known reasons only.
+- `src/lib/mockExplanation.ts` - browser client for the `explain-availability` edge function.
+- `src/lib/mockExplain.test.ts` - unit tests for the mock explanation (E01-E09).
+- `supabase/functions/explain-availability/` - server-side adapter. Validates request shape, returns `{ explanation, source: "mock-ai" }`. No external API is called; no secrets are used.
+- `supabase/functions/_shared/explainMock.ts` - the same generator as `src/lib/mockExplain.ts`, kept in sync manually (Deno functions cannot import from `src/`).
 
 ## Acceptance criteria
 
@@ -27,6 +32,10 @@ Out of scope: backend, login, saving bookings, and new features. The page does n
 - Share limits through exported constants (`MAX_BOOKING_MINUTES`) rather than repeating numbers in the UI.
 - Preserve existing UI text and behavior unless a change is requested.
 - Do not weaken or delete tests to make them pass.
+- The deterministic checker (`checkAvailability`) is authoritative. The mock explanation is display-only and must never change the confirmed result.
+- Never call a real LLM API from the browser. All model/secret traffic goes through a server-side adapter (edge function).
+- Do not add login, a database, or real personal data to this prototype.
+- Keep the explanation labeled as "Mock AI" in the UI.
 
 ## Commands
 
